@@ -3,9 +3,9 @@ import smtplib
 import secret
 import time
 
-#reads the key words for the search
+#these are the words, the script looks for at the subreddit
 keywordFile = open('keywords.txt', 'r')
-keywords = keywordFile.read().split(',')
+keywords = keywordFile.read().split(' ')
 keywordFile.close()
 #reddit api conn
 reddit = praw.Reddit(
@@ -23,27 +23,32 @@ def search_reddit():
     findings = {}
     #if keywords found in the posts, adds the posts title and url to a dict
     for posts in new_posts:
+        print(posts.title.lower())
         for keyword in keywords:
-            if keyword in posts.title.lower():
+            if str(keyword) in posts.title.lower():
                 findings[posts.title] = posts.url
-    findings.encode('ascii', 'ignore')
     if findings:
         send_mail(findings)
 
 
 def send_mail(findings):
-    #reads in titles that were sent previously
-    sentFile = open('sent.txt', 'r')
-    sent = sentFile.read().splitlines()
-    sentFile.close()
-    #if item sent previously, deletes it from the found item dictionary
+    #reads in the titles, which are already sent to dst_mail
+    try:
+        sentFile = open('sent.txt', 'r')
+        sent = sentFile.read().splitlines()
+        sentFile.close()
+    except FileNotFoundError:
+        sentFile = open("sent.txt", "w")
+        sentFile.close()
+
+    #if item sent already, delete it from the found item dictionary
     for title in sent:
         try:
             if findings[title]:
                 del findings[title]
         except KeyError:
             pass
-    #sending email
+    #sending the mail
     if findings:
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.ehlo()
@@ -52,7 +57,7 @@ def send_mail(findings):
 
         server.login(secret.src_mail, secret.mail_pw)
 
-        subject = 'Found free courses that may be interesting'
+        subject = 'Found free courses that may be interesting...'
         body = ''
         try:
             for item in findings:
@@ -70,7 +75,7 @@ def send_mail(findings):
         )
         server.quit()
 
-    #Saving the sent course's titles
+    #Saves the sent courses' titles
     sentFile = open('sent.txt', 'a')
     for item in findings:
         new_item = item
