@@ -23,7 +23,6 @@ def search_reddit():
     findings = {}
     #if keywords found in the posts, adds the posts title and url to a dict
     for posts in new_posts:
-        print(posts.title.lower())
         for keyword in keywords:
             if str(keyword) in posts.title.lower():
                 findings[posts.title] = posts.url
@@ -83,6 +82,7 @@ def send_mail(findings):
     sentFile.close()
 
 
-while True:
-    search_reddit()
-    time.sleep(600)
+if __name__ == "__main__":
+    while True:
+        search_reddit()
+        time.sleep(600)
