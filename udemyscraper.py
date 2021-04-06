@@ -23,6 +23,11 @@ def search_reddit():
     findings = {}
     #if keywords found in the posts, adds the posts title and url to a dict
     for posts in new_posts:
+        try:
+            post=posts.title
+            post.encode('utf-8').decode('ascii')
+        except UnicodeDecodeError:
+            continue
         for keyword in keywords:
             if str(keyword) in posts.title.lower():
                 findings[posts.title] = posts.url
@@ -58,15 +63,12 @@ def send_mail(findings):
 
         subject = 'Found free courses that may be interesting...'
         body = ''
-        try:
-            for item in findings:
-                body += str(item) + '\n'
-                body += str(findings[item] + '\n')
-        except UnicodeEncodeError:
-            pass
+        for item in findings:
+            body += str(item) + '\n'
+            body += str(findings[item] + '\n')
 
         msg = f"Subject: {subject}\n\n{body}"
-
+        
         server.sendmail(
             secret.src_mail,
             secret.dst_mail,
